@@ -26,9 +26,12 @@ namespace NotTetris {
     public class Tetromino {
         private static Random _rand = new Random();
 
+
+
         public static TetrominoType GetRandomType() {
+            //if you return a specific tetromino, be sure to disable the loop preventing to have the same tetronimo back to back in the Board Script
             Array values = Enum.GetValues(typeof(TetrominoType));
-            // return TetrominoType.I;
+            // return TetrominoType.J;
             return (TetrominoType)values.GetValue(_rand.Next(values.Length));
         }
 
@@ -82,7 +85,7 @@ namespace NotTetris {
         public static readonly TetrominoPosition[][] JOffsets = [
             [ new(-1, 0), new(-1, 1), new(0, 1), new(1, 1) ],
             [ new(0, -1), new(1, -1), new(0, 0), new(0, 1) ],
-            [ new(-1, 0), new(0, 0), new(1, 0), new(1, -1) ],
+            [ new(-1, 0), new(0, 0), new(1, 0), new(1, 1) ],
             [ new(0, -1), new(0, 0), new(-1, 1), new(0, 1) ]
         ];
 

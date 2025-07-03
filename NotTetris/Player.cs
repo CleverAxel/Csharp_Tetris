@@ -73,7 +73,7 @@ namespace NotTetris {
         }
 
 
-        public void UndoLateralMove() {
+        public void UndoSideMove() {
             _position.X = _prevPosition.X;
         }
 
