@@ -37,7 +37,9 @@ namespace NotTetris {
 
         private byte _blinkCount = 0;
         private const byte maxBlinkCount = 2 * 2;
-        private const short elapsedBtwBlink = 125;
+        private const short elapsedBtwBlinkMs = 125;
+        private const short allowMovementOnGroundTimeoutMs = 750;
+        private short _allowMovementT = 0;
         private short _blinkT = 0;
         private byte _lineOpacity = 0;
 
@@ -72,11 +74,12 @@ namespace NotTetris {
             PlayerAction playerAction = Player.Update();
             bool movementApplied = playerAction != PlayerAction.None;
 
-            if ((playerAction & PlayerAction.Fall) != 0) {
+            if ((playerAction & PlayerAction.Fall) != 0 && !TetrominoHitBottom()) {
+                Player.ApplyFall();
                 _lastFallTimestamp = Core.TimeElapsed;
             }
 
-            if (!FallInCoolDown()) {
+            if (!FallInCoolDown() && !TetrominoHitBottom()) {
                 _lastFallTimestamp = Core.TimeElapsed;
                 fallApplied = true;
                 Player.ApplyFall();
@@ -86,18 +89,20 @@ namespace NotTetris {
                 short wallKick = GetWallKick();
                 Player.ApplyWallKick(wallKick);
                 bool outOfBoundsOrColliding = TetronimoOutOfBoundsOrColliding();
+
                 byte attempt = 0;
                 //Even with the wall kick if it's still colliding with something, let's rotate to see if it's possible to
                 //unlock it
-                while (outOfBoundsOrColliding && attempt < 4) {
+                while (outOfBoundsOrColliding && attempt < 3) {
                     Player.ApplyRotation();
                     outOfBoundsOrColliding = TetronimoOutOfBoundsOrColliding();
                     attempt++;
                 }
 
+
                 //still out of bounds or colliding, undo the movement :(
                 if (outOfBoundsOrColliding)
-                    Player.ApplyWallKick((short)-wallKick);
+                Player.ApplyWallKick((short)-wallKick);
 
             }
 
@@ -105,14 +110,17 @@ namespace NotTetris {
                 Player.UndoSideMove();
             }
 
-            if (movementApplied || fallApplied) {
+            if (movementApplied || fallApplied || HasAlreadyHitBottomOnce()) {
                 if (TetrominoHitBottom()) {
-                    Player.UnApplyFall();
-                    _tetrominoInGame = false;
 
-                    //this method has found some rows to clear if it returns true
-                    _mustClearLine = RetrieveIndexesOfRowToClear();
-                    return;
+                    _allowMovementT += (short)(Core.DeltaTime * 1000.0f);
+                    if (_allowMovementT >= allowMovementOnGroundTimeoutMs) {
+                        _tetrominoInGame = false;
+                        //this method has found some rows to clear if it returns true
+                        _mustClearLine = RetrieveIndexesOfRowToClear();
+                        _allowMovementT = 0;
+                    }
+
                 }
                 EraseTetrominoInGameFromBoard();
                 DrawTetrominoToBoard();
@@ -127,17 +135,17 @@ namespace NotTetris {
         private bool HasFinishedPlayingBlinkAnimation() {
             _blinkT += (short)(Core.DeltaTime * 1000.0f);
             if (_blinkCount < maxBlinkCount) {
-                if (_blinkT >= elapsedBtwBlink) {
-                    _blinkT -= elapsedBtwBlink;
+                if (_blinkT >= elapsedBtwBlinkMs) {
+                    _blinkT -= elapsedBtwBlinkMs;
                     _blinkCount++;
                     _lineOpacity = (byte)(_blinkCount % 2);
                 }
             } else {
                 _lineOpacity = 0;
 
-                if (_blinkT >= elapsedBtwBlink) {
+                if (_blinkT >= elapsedBtwBlinkMs) {
                     _blinkCount = 0;
-                    _blinkT -= elapsedBtwBlink;
+                    _blinkT -= elapsedBtwBlinkMs;
                     _mustClearLine = false;
                     return true;
                 }
@@ -154,7 +162,7 @@ namespace NotTetris {
                     short yOffset = (short)(y + _tetrominoOffsets[Player.Rotation][i].Y);
 
                     bool inPrevPosition = IsInPreviousPosition(x, yOffset);
-                    if (yOffset >= HEIGHT || (yOffset >= 0 && !inPrevPosition && _data[yOffset, x] != EMPTY)) {
+                    if (yOffset >= HEIGHT || (yOffset >= 0 && InBoardXBounds(x) && !inPrevPosition && _data[yOffset, x] != EMPTY)) {
                         ghostPieceYLevel = (short)(y - 1);
                         return;
                     }
@@ -166,13 +174,14 @@ namespace NotTetris {
         }
 
         private bool TetrominoHitBottom() {
+            short playerPosition = (short)(Player.Position.Y + 1);
             for (short i = 0; i < _tetrominoOffsets[Player.Rotation].Length; i++) {
 
                 short X = (short)(Player.Position.X + _tetrominoOffsets[Player.Rotation][i].X);
-                short Y = (short)(Player.Position.Y + _tetrominoOffsets[Player.Rotation][i].Y);
+                short Y = (short)(playerPosition + _tetrominoOffsets[Player.Rotation][i].Y);
 
                 bool inPrevPosition = IsInPreviousPosition(X, Y);
-                if (Y >= HEIGHT || (Y >= 0 && !inPrevPosition && _data[Y, X] != EMPTY))
+                if (Y >= HEIGHT || (Y >= 0 && InBoardXBounds(X) && !inPrevPosition && _data[Y, X] != EMPTY))
                     return true;
             }
 
@@ -487,6 +496,9 @@ namespace NotTetris {
             }
 
             return foundLinesToClear;
+        }
+        private bool HasAlreadyHitBottomOnce() {
+            return _allowMovementT != 0;
         }
 
         private byte[,] Init() {

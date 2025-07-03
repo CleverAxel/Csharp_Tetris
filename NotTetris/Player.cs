@@ -61,7 +61,7 @@ namespace NotTetris {
                 }
 
                 if (Core.InputManager.IsPressingDown()) {
-                    _position.Y++;
+                    // _position.Y++;
                     lastInputTimestamp = Core.TimeElapsed;
                     action |= PlayerAction.Fall;
                 }
