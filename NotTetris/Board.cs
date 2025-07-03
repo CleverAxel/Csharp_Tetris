@@ -37,7 +37,7 @@ namespace NotTetris {
 
         private byte _blinkCount = 0;
         private const byte maxBlinkCount = 2 * 2;
-        private const short elapsedBtwBlinkMs = 125;
+        private const short elapsedBtwBlinkTimeoutMs = 125;
         private const short allowMovementOnGroundTimeoutMs = 750;
         private short _allowMovementT = 0;
         private short _blinkT = 0;
@@ -66,22 +66,15 @@ namespace NotTetris {
 
             if (!_tetrominoInGame) {
                 AddNewTetrominoInGame();
-                _lastFallTimestamp = Core.TimeElapsed;
                 return;
             }
 
-            bool fallApplied = false;
             PlayerAction playerAction = Player.Update();
             bool movementApplied = playerAction != PlayerAction.None;
 
-            if ((playerAction & PlayerAction.Fall) != 0 && !TetrominoHitBottom()) {
-                Player.ApplyFall();
+            if (((playerAction & PlayerAction.Fall) != 0 || !FallInCoolDown()) && !TetrominoHitBottom()) {
                 _lastFallTimestamp = Core.TimeElapsed;
-            }
-
-            if (!FallInCoolDown() && !TetrominoHitBottom()) {
-                _lastFallTimestamp = Core.TimeElapsed;
-                fallApplied = true;
+                movementApplied = true;
                 Player.ApplyFall();
             }
 
@@ -99,10 +92,9 @@ namespace NotTetris {
                     attempt++;
                 }
 
-
                 //still out of bounds or colliding, undo the movement :(
                 if (outOfBoundsOrColliding)
-                Player.ApplyWallKick((short)-wallKick);
+                    Player.ApplyWallKick((short)-wallKick);
 
             }
 
@@ -110,7 +102,7 @@ namespace NotTetris {
                 Player.UndoSideMove();
             }
 
-            if (movementApplied || fallApplied || HasAlreadyHitBottomOnce()) {
+            if (movementApplied || HasAlreadyHitBottomOnce()) {
                 if (TetrominoHitBottom()) {
 
                     _allowMovementT += (short)(Core.DeltaTime * 1000.0f);
@@ -122,7 +114,7 @@ namespace NotTetris {
                     }
 
                 }
-                EraseTetrominoInGameFromBoard();
+                ErasePrevTetrominoPositionFromBoard();
                 DrawTetrominoToBoard();
                 CalculateGhostPieceYLevel();
             }
@@ -135,17 +127,17 @@ namespace NotTetris {
         private bool HasFinishedPlayingBlinkAnimation() {
             _blinkT += (short)(Core.DeltaTime * 1000.0f);
             if (_blinkCount < maxBlinkCount) {
-                if (_blinkT >= elapsedBtwBlinkMs) {
-                    _blinkT -= elapsedBtwBlinkMs;
+                if (_blinkT >= elapsedBtwBlinkTimeoutMs) {
+                    _blinkT -= elapsedBtwBlinkTimeoutMs;
                     _blinkCount++;
                     _lineOpacity = (byte)(_blinkCount % 2);
                 }
             } else {
                 _lineOpacity = 0;
 
-                if (_blinkT >= elapsedBtwBlinkMs) {
+                if (_blinkT >= elapsedBtwBlinkTimeoutMs) {
                     _blinkCount = 0;
-                    _blinkT -= elapsedBtwBlinkMs;
+                    _blinkT -= elapsedBtwBlinkTimeoutMs;
                     _mustClearLine = false;
                     return true;
                 }
@@ -215,6 +207,7 @@ namespace NotTetris {
 
             DrawTetrominoToBoard();
             CalculateGhostPieceYLevel();
+            _lastFallTimestamp = Core.TimeElapsed;
         }
 
         /// <summary>
@@ -418,7 +411,7 @@ namespace NotTetris {
             _spikyTile = Core.Content.Load<Texture2D>("images/spiky_tiles");
         }
 
-        public void EraseTetrominoInGameFromBoard() {
+        public void ErasePrevTetrominoPositionFromBoard() {
             foreach (var item in _previousTetrominoPosition) {
                 if (InBoardYBounds(item.Y) && InBoardXBounds(item.X))
                     _data[item.Y, item.X] = EMPTY;
