@@ -70,20 +70,22 @@ namespace NotTetris {
                 }
                 return;
             }
-            
+
 
             if (!_tetrominoInGame) {
                 AddNewTetrominoInGame();
                 return;
             }
 
-            bool movementApplied = playerAction != PlayerAction.None;
+            bool hitBottom = TetrominoHitBottom();
 
+            //kinda of a hack to trigger the movementAppliedOrHitBottom || HasAlreadyHitBottomOnce() condition.
+            //this will help detect the game over when spawning a new tetromino and that all the tiles will be above the grid.
+            bool movementAppliedOrHitBottom = playerAction != PlayerAction.None || hitBottom;
 
-
-            if (((playerAction & PlayerAction.Fall) != 0 || !FallInCoolDown()) && !TetrominoHitBottom()) {
+            if (((playerAction & PlayerAction.Fall) != 0 || !FallInCoolDown()) && !hitBottom) {
                 _lastFallTimestamp = Core.TimeElapsed;
-                movementApplied = true;
+                movementAppliedOrHitBottom = true;
                 Player.ApplyFall();
             }
 
@@ -112,7 +114,7 @@ namespace NotTetris {
                 Player.UndoSideMove();
             }
 
-            if (movementApplied || HasAlreadyHitBottomOnce()) {
+            if (movementAppliedOrHitBottom || HasAlreadyHitBottomOnce()) {
                 if (TetrominoHitBottom()) {
                     _allowMovementT += (short)(Core.DeltaTime * 1000.0f);
                     if (_allowMovementT >= allowMovementOnGroundTimeoutMs) {
@@ -120,7 +122,7 @@ namespace NotTetris {
                         //this method has found some rows to clear if it returns true
                         _mustClearLine = RetrieveIndexesOfRowToClear();
                         _allowMovementT = 0;
-                         Core.Audio.PlaySoundEffect(Core.Audio.soundEffects["tetromino_lock"]);
+                        Core.Audio.PlaySoundEffect(Core.Audio.soundEffects["tetromino_lock"]);
                     }
 
                 }
