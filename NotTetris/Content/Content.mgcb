@@ -49,12 +49,6 @@
 /processorParam:Quality=Best
 /build:audio/rotation.mp3
 
-#begin effects/speedlines.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:effects/speedlines.fx
-
 #begin images/spiky_tiles.png
 /importer:TextureImporter
 /processor:TextureProcessor
