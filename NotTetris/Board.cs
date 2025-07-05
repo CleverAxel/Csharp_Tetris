@@ -57,23 +57,26 @@ namespace NotTetris {
         }
 
         public void Update() {
+            //need to call player update first, else there is a small bug - no registration of the press of the space bar sometimes idk why
+            PlayerAction playerAction = Player.Update();
+            if (playerAction == PlayerAction.Space) {
+                SetDirectlyTetronimo();
+                return;
+            }
+
             if (_mustClearLine) {
                 if (HasFinishedPlayingBlinkAnimation()) {
                     EraseLines();
                 }
                 return;
             }
+            
 
             if (!_tetrominoInGame) {
                 AddNewTetrominoInGame();
                 return;
             }
 
-            PlayerAction playerAction = Player.Update();
-            if (playerAction == PlayerAction.Space) {
-                SetDirectlyTetronimo();
-                return;
-            }
             bool movementApplied = playerAction != PlayerAction.None;
 
 

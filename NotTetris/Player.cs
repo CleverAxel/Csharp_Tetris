@@ -141,7 +141,7 @@ namespace NotTetris {
 
 
         private bool InputInCoolDown() {
-            return Core.TimeElapsed - lastInputTimestamp < defaultInputTimeoutMs;
+            return Core.TimeElapsed - lastInputTimestamp <= defaultInputTimeoutMs;
         }
 
     }
