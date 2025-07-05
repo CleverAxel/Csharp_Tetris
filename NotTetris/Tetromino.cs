@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 
 namespace NotTetris {
@@ -23,16 +24,22 @@ namespace NotTetris {
     }
 
 
-    public class Tetromino {
+    public static class Tetromino {
         private static Random _rand = new Random();
-
-
-
+        private static byte _count = 0;
         public static TetrominoType GetRandomType() {
             //if you return a specific tetromino, be sure to disable the loop preventing to have the same tetronimo back to back in the Board Script
             Array values = Enum.GetValues(typeof(TetrominoType));
-            // return TetrominoType.I;
-            return (TetrominoType)values.GetValue(_rand.Next(values.Length));
+            var tetronimo = (TetrominoType)values.GetValue(_rand.Next(values.Length));
+
+            if (tetronimo == TetrominoType.I)
+                _count = 0;
+            else
+                if (_count++ >= 7) {
+                tetronimo = TetrominoType.I;
+                _count = 0;
+            }
+            return tetronimo;
         }
 
         public static TetrominoPosition[][] GetOffsetsFromTypeAndRotation(TetrominoType type) {
