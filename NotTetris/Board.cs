@@ -120,6 +120,7 @@ namespace NotTetris {
                         //this method has found some rows to clear if it returns true
                         _mustClearLine = RetrieveIndexesOfRowToClear();
                         _allowMovementT = 0;
+                         Core.Audio.PlaySoundEffect(Core.Audio.soundEffects["tetromino_lock"]);
                     }
 
                 }
@@ -142,6 +143,7 @@ namespace NotTetris {
             ErasePrevTetrominoPositionFromBoard();
             DrawTetrominoToBoard();
             _mustClearLine = RetrieveIndexesOfRowToClear();
+            Core.Audio.PlaySoundEffect(Core.Audio.soundEffects["tetromino_lock"]);
         }
 
         private bool HasFinishedPlayingBlinkAnimation() {
@@ -228,7 +230,7 @@ namespace NotTetris {
 
             FixYPlayerPosition();
             if (AllTilesAboveGrid()) {
-                // throw new IndexOutOfRangeException("GAME OVER");
+                throw new IndexOutOfRangeException("GAME OVER");
             }
 
             DrawTetrominoToBoard();

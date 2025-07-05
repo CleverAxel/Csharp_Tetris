@@ -32,6 +32,7 @@ namespace DirtyLibrary {
             soundEffects.Add("player_rotation", Core.Content.Load<SoundEffect>("audio/rotation"));
             soundEffects.Add("tetromino_spawn", Core.Content.Load<SoundEffect>("audio/pop"));
             soundEffects.Add("tetromino_disappear", Core.Content.Load<SoundEffect>("audio/disappear"));
+            soundEffects.Add("tetromino_lock", Core.Content.Load<SoundEffect>("audio/lock"));
 
             songs.Add("gravity", Core.Content.Load<Song>("audio/idonthavetherights"));
         }

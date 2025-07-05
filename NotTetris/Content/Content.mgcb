@@ -25,6 +25,12 @@
 /processorParam:Quality=Best
 /build:audio/idonthavetherights.mp3
 
+#begin audio/lock.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:audio/lock.mp3
+
 #begin audio/player_movement.mp3
 /importer:Mp3Importer
 /processor:SoundEffectProcessor
