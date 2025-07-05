@@ -9,8 +9,8 @@ namespace NotTetris {
         private Board _board;
         private GameManager _manager;
 
-        private const short VIRTUAL_HEIGHT = Board.CELL_SIZE * Board.HEIGHT_WITH_BORDER;
-        private const short VIRTUAL_WIDTH = VIRTUAL_HEIGHT;
+        public const short VIRTUAL_HEIGHT = Board.CELL_SIZE * Board.HEIGHT_WITH_BORDER;
+        public const short VIRTUAL_WIDTH = VIRTUAL_HEIGHT;
 
         public Game() : base("Not Tetris (at all)", VIRTUAL_WIDTH, VIRTUAL_HEIGHT, false) {
             _player = new Player();
