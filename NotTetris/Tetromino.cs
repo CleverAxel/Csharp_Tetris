@@ -31,7 +31,7 @@ namespace NotTetris {
         public static TetrominoType GetRandomType() {
             //if you return a specific tetromino, be sure to disable the loop preventing to have the same tetronimo back to back in the Board Script
             Array values = Enum.GetValues(typeof(TetrominoType));
-            // return TetrominoType.T;
+            // return TetrominoType.I;
             return (TetrominoType)values.GetValue(_rand.Next(values.Length));
         }
 

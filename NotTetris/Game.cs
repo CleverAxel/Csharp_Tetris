@@ -25,6 +25,9 @@ namespace NotTetris {
 
         protected override void LoadContent() {
             _manager.LoadContent();
+            Audio.LoadContent();
+
+            Audio.PlaySong(Audio.songs["gravity"], true);
             base.LoadContent();
         }
 
@@ -36,6 +39,7 @@ namespace NotTetris {
             DeltaTime = gameTime.ElapsedGameTime.Milliseconds / 1000.0f;
 
             InputManager.Update();
+            Audio.Update();
             _manager.Update();
 
             base.Update(gameTime);
@@ -43,7 +47,7 @@ namespace NotTetris {
 
         protected override void Draw(GameTime gameTime) {
             GraphicsDevice.SetRenderTarget(renderTarget2D);
-            GraphicsDevice.Clear(Color.LightBlue);
+            GraphicsDevice.Clear(Color.Black);
 
 
             SpriteBatch.Begin(samplerState: SamplerState.PointClamp, blendState: BlendState.AlphaBlend);

@@ -60,6 +60,14 @@ namespace DirtyLibrary.Input {
             return Core.WindowHasFocus() && _keyboard.IsPressingRight();
         }
 
+        public bool IsPressingJump() {
+            return Core.WindowHasFocus() && _keyboard.IsPressingJump();
+        }
+
+        public bool IsReleasingJump(){
+            return Core.WindowHasFocus() && _keyboard.IsReleasingJump();
+        }
+
 
         /// <summary>
         /// If used with the method HasLeftClicked, HasClicked must be called first.

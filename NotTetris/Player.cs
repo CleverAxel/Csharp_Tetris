@@ -8,13 +8,18 @@ using DirtyLibrary;
 namespace NotTetris {
     public enum PlayerAction {
         None = 0,
-        LeftRight = 1 << 0,
+        Space = 1 << 0,
         Fall = 1 << 1,
         Rotation = 1 << 2,
+        Left = 1 << 3,
+        Right = 1 << 4,
     }
     public class Player {
+        private bool _prevActionWasLeft = false;
+        private bool _prevActionWasRight = false;
         private const short defaultInputTimeoutMs = 100;
         private bool _upKeyDown = false;
+        private bool _spaceKeyDown = false;
         private int lastInputTimestamp = 0;
 
         private TetrominoPosition _position;
@@ -30,10 +35,19 @@ namespace NotTetris {
         }
 
         public byte Rotation { get; set; }
+        private Random _r = new Random();
 
 
         public PlayerAction Update() {
             PlayerAction action = PlayerAction.None;
+
+            if (!_spaceKeyDown && Core.InputManager.IsPressingJump()) {
+                _spaceKeyDown = true;
+                 lastInputTimestamp = Core.TimeElapsed + defaultInputTimeoutMs;
+                return PlayerAction.Space;
+            } else if (_spaceKeyDown && Core.InputManager.IsReleasingJump()) {
+                _spaceKeyDown = false;
+            }
 
             if (!_upKeyDown && Core.InputManager.IsPressingUp()) {
                 ApplyRotation();
@@ -48,16 +62,40 @@ namespace NotTetris {
             if (!InputInCoolDown()) {
                 _prevPosition.X = _position.X;
                 _prevPosition.Y = _position.Y;
-                if (Core.InputManager.IsPressingLeft()) {
-                    lastInputTimestamp = Core.TimeElapsed;
-                    _position.X--;
-                    action |= PlayerAction.LeftRight;
+
+                bool isPressingLeft = Core.InputManager.IsPressingLeft();
+                bool isPressingRight = Core.InputManager.IsPressingRight();
+                bool isNotPressingOnBothLeftRight = isPressingLeft ^ isPressingRight;
+
+                if (isNotPressingOnBothLeftRight) {
+                    if (isPressingLeft) {
+                        if (!_prevActionWasLeft) {
+                            Core.Audio.PlaySoundEffect(Core.Audio.soundEffects["player_movement"], 1.0f, (float)(_r.NextDouble() * 0.2 - 0.1), 0.0f, false);
+                        }
+                        lastInputTimestamp = Core.TimeElapsed;
+                        _position.X--;
+                        action |= PlayerAction.Left;
+
+                        _prevActionWasLeft = true;
+                        _prevActionWasRight = false;
+                    }
+
+                    if (isPressingRight) {
+                        if (!_prevActionWasRight) {
+                            Core.Audio.PlaySoundEffect(Core.Audio.soundEffects["player_movement"], 1.0f, (float)(_r.NextDouble() * 0.2 - 0.1), 0.0f, false);
+                        }
+                        lastInputTimestamp = Core.TimeElapsed;
+                        _position.X++;
+                        action |= PlayerAction.Right;
+
+                        _prevActionWasLeft = false;
+                        _prevActionWasRight = true;
+                    }
                 }
 
-                if (Core.InputManager.IsPressingRight()) {
-                    lastInputTimestamp = Core.TimeElapsed;
-                    _position.X++;
-                    action |= PlayerAction.LeftRight;
+                if (!isPressingLeft && !isPressingRight) {
+                    _prevActionWasLeft = false;
+                    _prevActionWasRight = false;
                 }
 
                 if (Core.InputManager.IsPressingDown()) {
@@ -66,12 +104,13 @@ namespace NotTetris {
                     action |= PlayerAction.Fall;
                 }
 
-
             }
-
             return action;
         }
 
+        public void SetYLevel(short y) {
+            _position.Y = y;
+        }
 
         public void UndoSideMove() {
             _position.X = _prevPosition.X;

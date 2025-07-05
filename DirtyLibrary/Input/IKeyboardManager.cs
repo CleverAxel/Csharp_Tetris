@@ -11,6 +11,8 @@ namespace DirtyLibrary.Input
         public bool IsPressingLeft();
         public bool IsPressingRight();
         public bool IsPressingUp();
+        public bool IsPressingJump();
+        public bool IsReleasingJump();
         public bool IsReleasingUp();
         public bool IsPressingDown();
     }

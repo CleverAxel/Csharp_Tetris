@@ -28,6 +28,7 @@ namespace DirtyLibrary {
         public static new ContentManager Content { get; private set; }
 
         public static InputManager InputManager { get; private set; } = new InputManager(new MouseManager(), new KeyboardManager());
+        public static AudioController Audio { get; private set; } = new AudioController();
 
         public static int TimeElapsed { get; protected set; }
         public static float DeltaTime { get; protected set; }

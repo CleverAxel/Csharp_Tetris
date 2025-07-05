@@ -70,7 +70,13 @@ namespace NotTetris {
             }
 
             PlayerAction playerAction = Player.Update();
+            if (playerAction == PlayerAction.Space) {
+                SetDirectlyTetronimo();
+                return;
+            }
             bool movementApplied = playerAction != PlayerAction.None;
+
+
 
             if (((playerAction & PlayerAction.Fall) != 0 || !FallInCoolDown()) && !TetrominoHitBottom()) {
                 _lastFallTimestamp = Core.TimeElapsed;
@@ -95,16 +101,16 @@ namespace NotTetris {
                 //still out of bounds or colliding, undo the movement :(
                 if (outOfBoundsOrColliding)
                     Player.ApplyWallKick((short)-wallKick);
+                else Core.Audio.PlaySoundEffect(Core.Audio.soundEffects["player_rotation"]);
 
             }
 
-            if ((playerAction & PlayerAction.LeftRight) != 0 && TetronimoOutOfBoundsOrColliding()) {
+            if (((playerAction & PlayerAction.Left) != 0 || (playerAction & PlayerAction.Right) != 0) && TetronimoOutOfBoundsOrColliding()) {
                 Player.UndoSideMove();
             }
 
             if (movementApplied || HasAlreadyHitBottomOnce()) {
                 if (TetrominoHitBottom()) {
-
                     _allowMovementT += (short)(Core.DeltaTime * 1000.0f);
                     if (_allowMovementT >= allowMovementOnGroundTimeoutMs) {
                         _tetrominoInGame = false;
@@ -114,9 +120,10 @@ namespace NotTetris {
                     }
 
                 }
+
+                CalculateGhostPieceYLevel();
                 ErasePrevTetrominoPositionFromBoard();
                 DrawTetrominoToBoard();
-                CalculateGhostPieceYLevel();
             }
         }
 
@@ -124,10 +131,23 @@ namespace NotTetris {
             return Core.TimeElapsed - _lastFallTimestamp < _fallTimeout;
         }
 
+        private void SetDirectlyTetronimo() {
+            CalculateGhostPieceYLevel();
+            Player.SetYLevel(ghostPieceYLevel);
+            _tetrominoInGame = false;
+            _allowMovementT = 0;
+            ErasePrevTetrominoPositionFromBoard();
+            DrawTetrominoToBoard();
+            _mustClearLine = RetrieveIndexesOfRowToClear();
+        }
+
         private bool HasFinishedPlayingBlinkAnimation() {
             _blinkT += (short)(Core.DeltaTime * 1000.0f);
             if (_blinkCount < maxBlinkCount) {
                 if (_blinkT >= elapsedBtwBlinkTimeoutMs) {
+                    if (_lineOpacity == 0) {
+                        Core.Audio.PlaySoundEffect(Core.Audio.soundEffects["tetromino_disappear"]);
+                    }
                     _blinkT -= elapsedBtwBlinkTimeoutMs;
                     _blinkCount++;
                     _lineOpacity = (byte)(_blinkCount % 2);
@@ -136,6 +156,9 @@ namespace NotTetris {
                 _lineOpacity = 0;
 
                 if (_blinkT >= elapsedBtwBlinkTimeoutMs) {
+                    if (_lineOpacity == 0) {
+                        Core.Audio.PlaySoundEffect(Core.Audio.soundEffects["tetromino_disappear"]);
+                    }
                     _blinkCount = 0;
                     _blinkT -= elapsedBtwBlinkTimeoutMs;
                     _mustClearLine = false;
@@ -208,6 +231,7 @@ namespace NotTetris {
             DrawTetrominoToBoard();
             CalculateGhostPieceYLevel();
             _lastFallTimestamp = Core.TimeElapsed;
+            Core.Audio.PlaySoundEffect(Core.Audio.soundEffects["tetromino_spawn"]);
         }
 
         /// <summary>
@@ -398,6 +422,8 @@ namespace NotTetris {
                 _destRect.Y = (HEIGHT_WITH_BORDER - 1) * CELL_SIZE;
                 Core.SpriteBatch.Draw(_spikyTile, _destRect, Color.DarkGray);
             }
+
+
         }
 
         private bool InBoardXBounds(short x) {

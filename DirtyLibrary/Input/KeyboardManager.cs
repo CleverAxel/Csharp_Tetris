@@ -12,8 +12,17 @@ namespace DirtyLibrary.Input {
         public Keys Up { get; set; } = Keys.Up;
         public Keys Left { get; set; } = Keys.Left;
         public Keys Right { get; set; } = Keys.Right;
+        public Keys Jump { get; set; } = Keys.Space;
         public bool IsPressingDown() {
             return _currentKeyboardState.IsKeyDown(Down);
+        }
+
+        public bool IsPressingJump() {
+            return _currentKeyboardState.IsKeyDown(Jump);
+        }
+        
+        public bool IsReleasingJump() {
+            return _prevKeyboardState.IsKeyDown(Jump) && _currentKeyboardState.IsKeyUp(Jump);
         }
 
         public bool IsPressingLeft() {
@@ -27,6 +36,7 @@ namespace DirtyLibrary.Input {
         public bool IsPressingUp() {
             return _currentKeyboardState.IsKeyDown(Up);
         }
+
 
         public bool IsReleasingUp() {
             return _prevKeyboardState.IsKeyDown(Up) && _currentKeyboardState.IsKeyUp(Up); 

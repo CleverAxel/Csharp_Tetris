@@ -13,6 +13,36 @@
 
 #---------------------------------- Content ---------------------------------#
 
+#begin audio/disappear.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:audio/disappear.mp3
+
+#begin audio/idonthavetherights.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:audio/idonthavetherights.mp3
+
+#begin audio/player_movement.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:audio/player_movement.mp3
+
+#begin audio/pop.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:audio/pop.mp3
+
+#begin audio/rotation.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:audio/rotation.mp3
+
 #begin effects/speedlines.fx
 /importer:EffectImporter
 /processor:EffectProcessor
