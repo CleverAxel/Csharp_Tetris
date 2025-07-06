@@ -28,6 +28,10 @@ namespace DirtyLibrary.Input {
             return Core.WindowHasFocus() && _mouse.HasLeftClicked();
         }
 
+        public bool HasClicked(ref Rectangle rectangle) {
+            return Core.WindowHasFocus() && _mouse.HasLeftClicked(ref rectangle);
+        }
+
         public Vector2 GetMousePosition() {
             return _mouse.GetPosition();
         }

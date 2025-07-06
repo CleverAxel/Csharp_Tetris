@@ -9,8 +9,8 @@ namespace DirtyLibrary.Input
     public interface IMouseManager {
         public void Update();
         public bool HasLeftClicked();
+        public bool HasLeftClicked(ref Rectangle rectangle);
         public bool HasDoubleLeftClicked();
-        public bool HasClicked(ref Rectangle rectangle);
         public bool HasDoubleClicked(ref Rectangle rectangle);
         public Vector2 GetPosition();
         public bool InWindowBounds();

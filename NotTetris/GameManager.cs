@@ -54,6 +54,10 @@ namespace NotTetris {
 
         public void Update() {
             _board.Update();
+            if (Core.InputManager.HasClicked(ref _nextPanelDestRect)) {
+                System.Console.WriteLine("click");
+            }
+
         }
 
         private void OnNextTetrominoChange(TetrominoType nextTetromino, TetrominoPosition[] nextTetrominoOffsets) {

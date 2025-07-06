@@ -12,7 +12,7 @@ namespace DirtyLibrary.Input {
 
         public Vector2 position = Vector2.Zero;
         public Vector2 mouseDownPosition = Vector2.Zero;
-        public Vector2 mouseUpPosition;
+        public Vector2 mouseUpPosition = Vector2.Zero;
         public bool _isMouseDown = false;
         public bool _isMouseUp = false;
 
@@ -23,6 +23,7 @@ namespace DirtyLibrary.Input {
         private MouseState _currentMouseState;
         private MouseState _prevMouseState;
         private int _timeOfFirstClickMs = 0;
+        private bool _wasPressedInside = false;
 
         public void Update() {
             _prevMouseState = _currentMouseState;
@@ -72,8 +73,20 @@ namespace DirtyLibrary.Input {
             return false;
         }
 
-        public bool HasClicked(ref Rectangle rectangle) {
-            throw new NotImplementedException();
+        public bool HasLeftClicked(ref Rectangle rectangle) {
+            if (!_isMouseDown && _currentMouseState.LeftButton == ButtonState.Pressed) {
+                _isMouseDown = true;
+                mouseDownPosition.X = _currentMouseState.X;
+                mouseDownPosition.Y = _currentMouseState.Y;
+            } else if (_isMouseDown && _currentMouseState.LeftButton == ButtonState.Released) {
+                mouseUpPosition.X = _currentMouseState.X;
+                mouseUpPosition.Y = _currentMouseState.Y;
+                _isMouseDown = false;
+
+                return rectangle.Contains(mouseDownPosition) && rectangle.Contains(mouseUpPosition);
+            }
+
+            return false;
         }
 
         public bool HasDoubleClicked(ref Rectangle rectangle) {
