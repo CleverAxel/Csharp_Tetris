@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,6 +12,8 @@ namespace NotTetris {
 
     public class Board {
         public Action<TetrominoType, TetrominoPosition[]> OnNextTetrominoChange;
+        public Action<int> OnScoreChange;
+        public Action<int> OnLevelChange;
         public const byte WIDTH = 10;
         public const byte HEIGHT = 20;
 
@@ -35,6 +38,12 @@ namespace NotTetris {
         public Player Player { get; set; }
         private int _lastFallTimestamp = 0;
         private short _fallTimeout = 1000;
+        private short[] _fallTimeOutsMs = [800, 720, 630, 550, 470, 380, 300, 220, 130, 100, 75];
+        private byte _indexFallTimeOut = 0;
+        private byte _nbrLinesCleared = 0;
+
+        private int _score = 0;
+        private int _level = 0;
 
         private byte _blinkCount = 0;
         private const byte maxBlinkCount = 2 * 2;
@@ -61,12 +70,14 @@ namespace NotTetris {
             //need to call player update first, else there is a small bug - no registration of the press of the space bar sometimes idk why
             PlayerAction playerAction = Player.Update();
             if (playerAction == PlayerAction.Space) {
-                SetDirectlyTetronimo();
+                SetHardDropTetronimo();
                 return;
             }
 
             if (_mustClearLine) {
                 if (HasFinishedPlayingBlinkAnimation()) {
+                    CalculateScoreFromErasedLines();
+                    OnScoreChange(_score);
                     EraseLines();
                 }
                 return;
@@ -88,6 +99,8 @@ namespace NotTetris {
                 _lastFallTimestamp = Core.TimeElapsed;
                 movementAppliedOrHitBottom = true;
                 Player.ApplyFall();
+                _score++;
+                OnScoreChange(_score);
             }
 
             if ((playerAction & PlayerAction.Rotation) != 0) {
@@ -139,11 +152,15 @@ namespace NotTetris {
         }
 
         private bool FallInCoolDown() {
-            return Core.TimeElapsed - _lastFallTimestamp < _fallTimeout;
+            return Core.TimeElapsed - _lastFallTimestamp < _fallTimeOutsMs[_indexFallTimeOut];
         }
 
-        private void SetDirectlyTetronimo() {
+        private void SetHardDropTetronimo() {
             CalculateGhostPieceYLevel();
+
+            int diff = ghostPieceYLevel - Player.Position.Y;
+            _score += diff;
+            OnScoreChange(_score);
             Player.SetYLevel(ghostPieceYLevel);
             _tetrominoInGame = false;
             _allowMovementT = 0;
@@ -359,7 +376,7 @@ namespace NotTetris {
                 Core.SpriteBatch.Draw(_spikyTile, _destRect, Color.White * 0.33f);
             }
         }
-        
+
         public void Draw() {
 
             DrawGhostPiece();
@@ -439,8 +456,42 @@ namespace NotTetris {
             }
         }
 
-        public void DrawTetrominoToBoard() {
+        public void CalculateScoreFromErasedLines() {
+            byte i = 0;
+            while (_lineClearIndexes[i] != byte.MaxValue) {
 
+                byte currentValue = _lineClearIndexes[i];
+                byte j = (byte)(i + 1);
+                byte count = 1;
+                while (j < _lineClearIndexes.Length && count < 4 && currentValue == _lineClearIndexes[j] + 1) {
+                    currentValue = _lineClearIndexes[j];
+                    count++;
+                    j++;
+                }
+
+                i = j;
+
+                _nbrLinesCleared += count;
+                if (_nbrLinesCleared >= 10) {
+                    _nbrLinesCleared = 0;
+                    _level++;
+                    OnLevelChange(_level);
+                    if (_indexFallTimeOut < _fallTimeOutsMs.Length) {
+                        _indexFallTimeOut++;
+                    }
+                }
+
+                _score += count switch {
+                    1 => 100 * (_level + 1),
+                    2 => 300 * (_level + 1),
+                    3 => 500 * (_level + 1),
+                    4 => 800 * (_level + 1),
+                    _ => throw new NotSupportedException($"Count is at {count}"),
+                };
+            }
+        }
+
+        public void DrawTetrominoToBoard() {
             for (short i = 0; i < _tetrominoOffsets[Player.Rotation].Length; i++) {
 
                 short X = (short)(Player.Position.X + _tetrominoOffsets[Player.Rotation][i].X);
@@ -453,6 +504,8 @@ namespace NotTetris {
                     _data[Y, X] = (byte)_currentTetronimo;
             }
         }
+
+
 
         private void EraseLines() {
             short y = HEIGHT - 1;
@@ -492,6 +545,7 @@ namespace NotTetris {
             ResetLineClearIndexes();
             short y = HEIGHT - 1;
             byte indexLineClear = 0;
+
             while (y >= 0) {
                 short x = 0;
                 bool foundEmptySpot = false;
