@@ -49,6 +49,13 @@
 /processorParam:Quality=Best
 /build:audio/rotation.mp3
 
+#begin font/pixel_operator.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:font/pixel_operator.spritefont
+
 #begin images/next_panel.png
 /importer:TextureImporter
 /processor:TextureProcessor

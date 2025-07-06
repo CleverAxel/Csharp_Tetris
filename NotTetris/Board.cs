@@ -10,6 +10,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace NotTetris {
 
     public class Board {
+        public Action<TetrominoType, TetrominoPosition[]> OnNextTetrominoChange;
         public const byte WIDTH = 10;
         public const byte HEIGHT = 20;
 
@@ -133,6 +134,10 @@ namespace NotTetris {
             }
         }
 
+        public TetrominoType GetNextTetrominoType() {
+            return _nextTetromino;
+        }
+
         private bool FallInCoolDown() {
             return Core.TimeElapsed - _lastFallTimestamp < _fallTimeout;
         }
@@ -224,6 +229,8 @@ namespace NotTetris {
             while (_nextTetromino == _currentTetronimo) {
                 _nextTetromino = Tetromino.GetRandomType();
             }
+
+            OnNextTetrominoChange(_nextTetromino, Tetromino.GetOffsetsFromTypeAndRotation(_nextTetromino)[0]);
 
             Player.ResetPositionRotation();
 
@@ -352,7 +359,7 @@ namespace NotTetris {
                 Core.SpriteBatch.Draw(_spikyTile, _destRect, Color.White * 0.33f);
             }
         }
-
+        
         public void Draw() {
 
             DrawGhostPiece();
@@ -375,34 +382,11 @@ namespace NotTetris {
                     switch (_data[y, x]) {
                         case EMPTY:
                             break;
-
-                        case (byte)TetrominoType.I:
-                            Core.SpriteBatch.Draw(_spikyTile, _destRect, Color.Cyan * opacity);
+                        default:
+                            Core.SpriteBatch.Draw(_spikyTile, _destRect, Tetromino.GetColorBasedOnType((TetrominoType)_data[y, x]) * opacity);
                             break;
 
-                        case (byte)TetrominoType.O:
-                            Core.SpriteBatch.Draw(_spikyTile, _destRect, Color.Yellow * opacity);
-                            break;
 
-                        case (byte)TetrominoType.T:
-                            Core.SpriteBatch.Draw(_spikyTile, _destRect, Color.Magenta * opacity);
-                            break;
-
-                        case (byte)TetrominoType.S:
-                            Core.SpriteBatch.Draw(_spikyTile, _destRect, Color.LightGreen * opacity);
-                            break;
-
-                        case (byte)TetrominoType.Z:
-                            Core.SpriteBatch.Draw(_spikyTile, _destRect, Color.OrangeRed * opacity);
-                            break;
-
-                        case (byte)TetrominoType.J:
-                            Core.SpriteBatch.Draw(_spikyTile, _destRect, Color.SteelBlue * opacity);
-                            break;
-
-                        case (byte)TetrominoType.L:
-                            Core.SpriteBatch.Draw(_spikyTile, _destRect, Color.Orange * opacity);
-                            break;
                     }
                 }
             }
@@ -438,6 +422,10 @@ namespace NotTetris {
         }
         private bool InBoardYBounds(short y) {
             return y >= 0 && y < HEIGHT;
+        }
+
+        public Texture2D GetSpikyTileTexture() {
+            return _spikyTile;
         }
 
         public void LoadContent() {

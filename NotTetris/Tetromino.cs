@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
+using Microsoft.Xna.Framework;
 
 namespace NotTetris {
     public enum TetrominoType {
@@ -40,6 +41,19 @@ namespace NotTetris {
                 _count = 0;
             }
             return tetronimo;
+        }
+
+        public static Color GetColorBasedOnType(TetrominoType type) {
+            return type switch {
+                TetrominoType.I => Color.Cyan,
+                TetrominoType.O => Color.Yellow,
+                TetrominoType.T => Color.Magenta,
+                TetrominoType.S => Color.LightGreen,
+                TetrominoType.Z => Color.OrangeRed,
+                TetrominoType.J => Color.SteelBlue,
+                TetrominoType.L => Color.Orange,
+                _ => throw new ArgumentOutOfRangeException(nameof(type), $"Unknown tetromino type: {type}")
+            };
         }
 
         public static TetrominoPosition[][] GetOffsetsFromTypeAndRotation(TetrominoType type) {

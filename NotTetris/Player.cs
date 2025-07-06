@@ -70,7 +70,7 @@ namespace NotTetris {
                 if (isNotPressingOnBothLeftRight) {
                     if (isPressingLeft) {
                         if (!_prevActionWasLeft) {
-                            Core.Audio.PlaySoundEffect(Core.Audio.soundEffects["player_movement"], 1.0f, (float)(_r.NextDouble() * 0.2 - 0.1), 0.0f, false);
+                            Core.Audio.PlaySoundEffect(Core.Audio.soundEffects["player_movement"], 0.50f, (float)(_r.NextDouble() * 0.2 - 0.1), 0.0f, false);
                         }
                         lastInputTimestamp = Core.TimeElapsed;
                         _position.X--;
@@ -82,7 +82,7 @@ namespace NotTetris {
 
                     if (isPressingRight) {
                         if (!_prevActionWasRight) {
-                            Core.Audio.PlaySoundEffect(Core.Audio.soundEffects["player_movement"], 1.0f, (float)(_r.NextDouble() * 0.2 - 0.1), 0.0f, false);
+                            Core.Audio.PlaySoundEffect(Core.Audio.soundEffects["player_movement"], 0.50f, (float)(_r.NextDouble() * 0.2 - 0.1), 0.0f, false);
                         }
                         lastInputTimestamp = Core.TimeElapsed;
                         _position.X++;

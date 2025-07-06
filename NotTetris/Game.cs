@@ -9,6 +9,8 @@ namespace NotTetris {
         private Board _board;
         private GameManager _manager;
 
+        public static SpriteFont font;
+
         public const short VIRTUAL_HEIGHT = Board.CELL_SIZE * Board.HEIGHT_WITH_BORDER;
         public const short VIRTUAL_WIDTH = VIRTUAL_HEIGHT;
 
@@ -24,9 +26,9 @@ namespace NotTetris {
         }
 
         protected override void LoadContent() {
+            font = Content.Load<SpriteFont>("font/pixel_operator");
             _manager.LoadContent();
             Audio.LoadContent();
-
             Audio.PlaySong(Audio.songs["gravity"], true);
             base.LoadContent();
         }
