@@ -12,7 +12,9 @@ namespace DirtyLibrary.Input
         public bool HasLeftClicked(ref Rectangle rectangle);
         public bool HasDoubleLeftClicked();
         public bool HasDoubleClicked(ref Rectangle rectangle);
-        public Vector2 GetPosition();
+        public ref Vector2 GetPosition();
+        public bool IsDown();
+        public bool IsUp();
         public bool InWindowBounds();
         public bool InPlayground();
     }

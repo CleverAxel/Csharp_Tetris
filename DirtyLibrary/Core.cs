@@ -1,8 +1,10 @@
 using System;
+using DirtyLibrary.External.SDL2;
 using DirtyLibrary.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace DirtyLibrary {
     public class Core : Game {
@@ -13,6 +15,7 @@ namespace DirtyLibrary {
 
         protected RenderTarget2D renderTarget2D;
         protected Rectangle renderDestRect = Rectangle.Empty;
+        public ref Rectangle RenderDestRect => ref renderDestRect;
         private short _virtualWidth;
         private short _virtualHeight;
         private bool _isResizing = false;
@@ -32,6 +35,9 @@ namespace DirtyLibrary {
 
         public static int TimeElapsed { get; protected set; }
         public static float DeltaTime { get; protected set; }
+        public static float OsScale { get; protected set; }
+
+
 
         public Core(string title, short virtualWidth, short virtualHeight, bool fullScreen) {
             if (s_instance != null) {
@@ -44,8 +50,13 @@ namespace DirtyLibrary {
 
             Graphics = new GraphicsDeviceManager(this);
 
-            Graphics.PreferredBackBufferWidth = virtualWidth;
-            Graphics.PreferredBackBufferHeight = virtualHeight;
+            IntPtr sdlHandle = Window.Handle;
+            OsScale = GetDisplayScale(sdlHandle);
+
+            Graphics.PreferredBackBufferWidth = (int)(virtualWidth * OsScale);
+            Graphics.PreferredBackBufferHeight = (int)(virtualHeight * OsScale);
+            OsScale = 1f / OsScale;
+            
             Graphics.IsFullScreen = fullScreen;
             Graphics.ApplyChanges();
 
@@ -103,9 +114,20 @@ namespace DirtyLibrary {
         }
 
         public static bool WindowHasFocus() {
+
             return Instance.IsActive;
         }
 
+        private static float GetDisplayScale(IntPtr sdlWindowHandle) {
+            int displayIndex = SDL.SDL_GetWindowDisplayIndex(sdlWindowHandle);
+            if (displayIndex < 0)
+                return 1f;
 
+            if (SDL.SDL_GetDisplayDPI(displayIndex, out float ddpi, out float hdpi, out float vdpi) == 0) {
+                return ddpi / 96f;
+            } else {
+                return 1f;
+            }
+        }
     }
 }

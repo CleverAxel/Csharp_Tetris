@@ -29,7 +29,7 @@ namespace NotTetris {
             font = Content.Load<SpriteFont>("font/pixel_operator");
             _manager.LoadContent();
             Audio.LoadContent();
-            // Audio.PlaySong(Audio.songs["gravity"], true);
+            Audio.PlaySong(Audio.songs["gravity"], true);
             base.LoadContent();
         }
 

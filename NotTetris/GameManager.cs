@@ -1,20 +1,25 @@
 
 using System;
+using System.Collections.Generic;
 using DirtyLibrary;
+using DirtyLibrary.Input.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Media;
 
 namespace NotTetris {
     public class GameManager {
         private Board _board;
         private Player _player;
 
+        private Texture2D _uiAtlas;
+
 
         #region NEXT TETROMINO UI
         private Vector2 _nextTexTPosition;
         private const string _nextLabel = "next";
-        private Texture2D _nextPanel;
         private Rectangle _nextPanelDestRect;
+        private Rectangle _nextPanelSrcRect = new Rectangle(0, 0, 32, 32);
         private TetrominoType _nextTetromino;
         private const short _nextTetrominoSize = 32;
         private Rectangle _nextTetrominoDestRect;
@@ -32,6 +37,9 @@ namespace NotTetris {
         #endregion
 
 
+        private List<Button> _buttons = new List<Button>(2);
+
+
         private const string _levelLabel = "Level: ";
         private string _level = "0";
         private Vector2 _levelLabelTextPosition;
@@ -40,23 +48,58 @@ namespace NotTetris {
 
         private ushort _uiLeft;
         private ushort _uiWidth;
+        private bool _isPaused = false;
+        private bool _isGameOver = false;
         public GameManager(Board board, Player player) {
             _board = board;
             _player = player;
             _uiLeft = Board.CELL_SIZE * Board.WIDTH_WITH_BORDER;
             _uiWidth = Game.VIRTUAL_WIDTH - Board.CELL_SIZE * Board.WIDTH_WITH_BORDER;
 
-            _board.OnNextTetrominoChange += OnNextTetrominoChange;
-            _board.OnScoreChange += OnScoreChange;
-            _board.OnLevelChange += OnLevelChange;
+            _board.OnNextTetrominoChange = OnNextTetrominoChange;
+            _board.OnScoreChange = OnScoreChange;
+            _board.OnLevelChange = OnLevelChange;
+            _board.OnGameOver = OnGameOver;
+
+
+            const float buttonScale = 3;
+            const int buttonWidth = (int)(46.0f * buttonScale);
+            const int buttonHeight = (int)(14.0f * buttonScale);
+            Button buttonPause = new Button();
+            buttonPause.AddOnMouseEnter(b => b.SetSrcRect(46, 32));
+            buttonPause.AddOnMouseLeave(b => b.SetSrcRect(0, 32));
+            buttonPause.AddOnClick((b) => { _isPaused = true; MediaPlayer.Pause(); });
+            byte gap = 10;
+            buttonPause.SetDestRect(_uiLeft + _uiWidth / 2 - buttonWidth - gap / 2, 475, buttonWidth, buttonHeight);
+            buttonPause.SetSrcRect(0, 32, 46, 14);
+            _buttons.Add(buttonPause);
+
+            Button buttonPlay = new Button();
+            buttonPlay.AddOnMouseEnter(b => b.SetSrcRect(32 + 46, 0));
+            buttonPlay.AddOnMouseLeave(b => b.SetSrcRect(32, 0));
+            buttonPlay.AddOnClick((b) => { _isPaused = false; MediaPlayer.Resume(); });
+            buttonPlay.SetDestRect(_uiLeft + _uiWidth / 2 + gap / 2, 475, buttonWidth, buttonHeight);
+            buttonPlay.SetSrcRect(32, 0, 46, 14);
+            _buttons.Add(buttonPlay);
+
+            Button buttonReset = new Button();
+            buttonReset.AddOnMouseEnter(b => b.SetSrcRect(46, 46));
+            buttonReset.AddOnMouseLeave(b => b.SetSrcRect(0, 46));
+            buttonReset.AddOnClick((b) => Reset());
+            buttonReset.SetDestRect(_uiLeft + _uiWidth / 2 - buttonWidth / 2, 475 + gap + buttonHeight, buttonWidth, buttonHeight);
+            buttonReset.SetSrcRect(0, 46, 46, 14);
+            _buttons.Add(buttonReset);
 
         }
 
         public void Update() {
-            _board.Update();
-            if (Core.InputManager.HasClicked(ref _nextPanelDestRect)) {
-                System.Console.WriteLine("click");
+
+            foreach (var button in _buttons) {
+                button.Update();
             }
+
+            if (!_isPaused && !_isGameOver)
+                _board.Update();
 
         }
 
@@ -91,6 +134,10 @@ namespace NotTetris {
 
             Core.SpriteBatch.DrawString(Game.font, _levelLabel, _levelLabelTextPosition, Color.White);
             Core.SpriteBatch.DrawString(Game.font, _level, _levelTextPosition, Color.White);
+
+            foreach (var button in _buttons) {
+                button.Draw(_uiAtlas);
+            }
         }
 
         private void DrawNextTetromino() {
@@ -100,12 +147,12 @@ namespace NotTetris {
 
                 Core.SpriteBatch.Draw(_board.GetSpikyTileTexture(), _nextTetrominoDestRect, Tetromino.GetColorBasedOnType(_nextTetromino));
             }
-            Core.SpriteBatch.Draw(_nextPanel, _nextPanelDestRect, Color.LightGray);
+            Core.SpriteBatch.Draw(_uiAtlas, _nextPanelDestRect, _nextPanelSrcRect, Color.White);
         }
 
         public void LoadContent() {
             _board.LoadContent();
-            _nextPanel = Core.Content.Load<Texture2D>("images/next_panel");
+            _uiAtlas = Core.Content.Load<Texture2D>("images/ui_atlas");
 
             //need to call it inside LoadContent, because it's using a FONT.
             InitializeUI();
@@ -173,6 +220,21 @@ namespace NotTetris {
             InitNextTetrominoUI();
             InitScoreUI();
             InitLevelUI();
+        }
+
+        private void OnGameOver() {
+            _isGameOver = true;
+            _isPaused = true;
+            MediaPlayer.Pause();
+        }
+
+        private void Reset() {
+            _isGameOver = false;
+            _isPaused = false;
+            MediaPlayer.Resume();
+            _board.Reset();
+            _level = "0";
+            _score = "0";
         }
     }
 }

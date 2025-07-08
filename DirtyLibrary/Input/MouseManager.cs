@@ -23,14 +23,15 @@ namespace DirtyLibrary.Input {
         private MouseState _currentMouseState;
         private MouseState _prevMouseState;
         private int _timeOfFirstClickMs = 0;
-        private bool _wasPressedInside = false;
 
         public void Update() {
             _prevMouseState = _currentMouseState;
             _currentMouseState = Mouse.GetState();
 
-            position.X = _currentMouseState.X;
-            position.Y = _currentMouseState.Y;
+            ref Rectangle rect = ref Core.Instance.RenderDestRect;
+
+            position.X = (_currentMouseState.X -  rect.X) * Core.OsScale;
+            position.Y = (_currentMouseState.Y - rect.Y) * Core.OsScale;
 
             ManageClickTimeOut();
         }
@@ -123,8 +124,8 @@ namespace DirtyLibrary.Input {
             return TimeElapsedBetweenClick() < _clickTimeout;
         }
 
-        public Vector2 GetPosition() {
-            return position;
+        public ref Vector2 GetPosition() {
+            return ref position;
         }
 
         public bool InWindowBounds() {
@@ -139,7 +140,13 @@ namespace DirtyLibrary.Input {
             return !(position.X < rectangle.Left || position.X > rectangle.Width + rectangle.Left || position.Y < rectangle.Top || position.Y > rectangle.Height + rectangle.Top);
         }
 
+        public bool IsDown() {
+            return _currentMouseState.LeftButton == ButtonState.Pressed;
+        }
 
+        public bool IsUp() {
+            return _currentMouseState.LeftButton == ButtonState.Released;
+        }
     }
 
 

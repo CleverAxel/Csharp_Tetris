@@ -32,8 +32,8 @@ namespace DirtyLibrary.Input {
             return Core.WindowHasFocus() && _mouse.HasLeftClicked(ref rectangle);
         }
 
-        public Vector2 GetMousePosition() {
-            return _mouse.GetPosition();
+        public ref Vector2 GetMousePosition() {
+            return ref _mouse.GetPosition();
         }
 
         public bool IsMouseInWindow() {
@@ -68,9 +68,10 @@ namespace DirtyLibrary.Input {
             return Core.WindowHasFocus() && _keyboard.IsPressingJump();
         }
 
-        public bool IsReleasingJump(){
+        public bool IsReleasingJump() {
             return Core.WindowHasFocus() && _keyboard.IsReleasingJump();
         }
+
 
 
         /// <summary>
@@ -79,6 +80,13 @@ namespace DirtyLibrary.Input {
         /// <returns>True if the double-clicked occured before the timeout</returns>
         public bool HasDoubleLeftClicked() {
             return Core.WindowHasFocus() && _mouse.HasDoubleLeftClicked();
+        }
+
+        public bool IsMouseUp() {
+            return Core.WindowHasFocus() && _mouse.IsUp();
+        }
+        public bool IsMouseDown() {
+            return Core.WindowHasFocus() && _mouse.IsDown();
         }
     }
 }

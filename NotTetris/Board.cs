@@ -14,6 +14,7 @@ namespace NotTetris {
         public Action<TetrominoType, TetrominoPosition[]> OnNextTetrominoChange;
         public Action<int> OnScoreChange;
         public Action<int> OnLevelChange;
+        public Action OnGameOver;
         public const byte WIDTH = 10;
         public const byte HEIGHT = 20;
 
@@ -37,7 +38,6 @@ namespace NotTetris {
         private byte[,] _data;
         public Player Player { get; set; }
         private int _lastFallTimestamp = 0;
-        private short _fallTimeout = 1000;
         private short[] _fallTimeOutsMs = [800, 720, 630, 550, 470, 380, 300, 220, 130, 100, 75];
         private byte _indexFallTimeOut = 0;
         private byte _nbrLinesCleared = 0;
@@ -58,6 +58,23 @@ namespace NotTetris {
             _nextTetromino = Tetromino.GetRandomType();
             _data = Init();
             ResetLineClearIndexes();
+        }
+
+        public void Reset() {
+            ResetLineClearIndexes();
+            for (byte y = 0; y < HEIGHT; y++) {
+                for (byte x = 0; x < WIDTH; x++) {
+                    _data[y, x] = EMPTY;
+                }
+            }
+
+            _score = 0;
+            _level = 0;
+            _indexFallTimeOut = 0;
+            _lastFallTimestamp = 0;
+            _tetrominoInGame = false;
+            _nbrLinesCleared = 0;
+            _nextTetromino = Tetromino.GetRandomType();
         }
 
         private void ResetLineClearIndexes() {
@@ -159,7 +176,7 @@ namespace NotTetris {
             CalculateGhostPieceYLevel();
 
             int diff = ghostPieceYLevel - Player.Position.Y;
-            _score += diff;
+            _score += diff * 2;
             OnScoreChange(_score);
             Player.SetYLevel(ghostPieceYLevel);
             _tetrominoInGame = false;
@@ -256,7 +273,8 @@ namespace NotTetris {
 
             FixYPlayerPosition();
             if (AllTilesAboveGrid()) {
-                throw new IndexOutOfRangeException("GAME OVER");
+                OnGameOver();
+                return;
             }
 
             DrawTetrominoToBoard();
